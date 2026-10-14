@@ -1,0 +1,22 @@
+[project]
+name = "etf-portfolio-demo"
+version = "0.1.0"
+description = "Streamlit ETF portfolio exposure explorer backed by Yahoo Finance and justETF"
+readme = "README.md"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+    "streamlit>=1.54,<2",
+    "pandas>=2.2,<3",
+    "plotly>=5.24,<7",
+    "yfinance>=0.2.65,<2",
+    "justetf-scraping @ git+https://github.com/druzsan/justetf-scraping.git",
+]
+
+[dependency-groups]
+dev = ["pytest>=8,<10"]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

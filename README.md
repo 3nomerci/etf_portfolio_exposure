@@ -138,10 +138,3 @@ data/portfolio.example.csv      Illustrative input
 
 Provider/library references: [yfinance](https://ranaroussi.github.io/yfinance/reference/index.html),
 and [justetf-scraping](https://github.com/druzsan/justetf-scraping).
-
-## Deployment
-
-Push this repository (without `data/portfolio.csv`) to GitHub, then connect it to
-[Streamlit Community Cloud](https://share.streamlit.io). Set the entry point to
-`app.py`. Validate dependency installation and justETF connectivity in that
-runtime before relying on a deployment.

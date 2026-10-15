@@ -16,6 +16,8 @@ _LABELS = {"yfinance": "Yahoo Finance", "justetf": "justETF"}
 def _label_key(name: str, kind: str) -> str:
     if kind == "holdings":
         return normalize_holding_name(name)
+    if kind == "sectors":
+        return name  # Preserve original provider labels when harmonization is off.
     return re.sub(r"\s+", " ", name.strip().casefold())
 
 
@@ -25,6 +27,8 @@ def exposure_chart(
     kind: str,
     title: str,
     max_categories: int | None = None,
+    side_by_side: bool = False,
+    weight_label: str = "Weight in total portfolio",
 ) -> go.Figure:
     """One row per category, two narrow/wide overlaid marks when comparing.
 
@@ -56,7 +60,7 @@ def exposure_chart(
     categories = [names[key] for key in ordered]
 
     fig = go.Figure()
-    comparing = len(available) > 1
+    comparing = len(available) > 1 and not side_by_side
     for source in ("yfinance", "justetf"):
         if source not in available:
             continue
@@ -66,7 +70,7 @@ def exposure_chart(
             y=categories,
             name=_LABELS[source],
             orientation="h",
-            width=(0.72 if source == "yfinance" else 0.40) if comparing else 0.66,
+            width=None if side_by_side else ((0.72 if source == "yfinance" else 0.40) if comparing else 0.66),
             opacity=(0.53 if source == "yfinance" else 0.94) if comparing else 0.95,
             marker_color=_COLORS[source],
             marker_line_width=0,
@@ -75,7 +79,7 @@ def exposure_chart(
 
     fig.update_layout(
         title=title,
-        barmode="overlay",
+        barmode="group" if side_by_side else "overlay",
         plot_bgcolor="white",
         paper_bgcolor="white",
         font=dict(family="Arial, sans-serif", size=13),
@@ -85,7 +89,7 @@ def exposure_chart(
         hovermode="closest",
     )
     fig.update_xaxes(
-        title="Weight in total portfolio",
+        title=weight_label,
         tickformat=".0%",
         rangemode="tozero",
         showgrid=True,

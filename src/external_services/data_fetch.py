@@ -6,7 +6,7 @@ No explicit historical-price requests are made.
 """
 from __future__ import annotations
 
-from functools import lru_cache
+from datetime import datetime, timezone
 import math
 import re
 from typing import Any
@@ -14,11 +14,6 @@ from typing import Any
 import pandas as pd
 
 from src.models import Breakdown, ETFData, Holding
-
-
-# ISIN search can return several listings. Prefer an EUR listing when possible.
-_EUR_EXCHANGES = (".MI", ".DE", ".PA", ".AS", ".BR", ".MC", ".VI")
-_ALL_EXCHANGES = _EUR_EXCHANGES + (".L", ".SW", ".S", ".ST")
 
 
 def _positive_number(value: Any) -> float | None:
@@ -71,6 +66,8 @@ def _parse_yf_holdings(raw: pd.DataFrame | None) -> tuple[Holding, ...]:
             isin=str(isin).strip().upper() if pd.notna(isin) and str(isin).strip() else None,
             symbol=str(symbol).strip(),
         ))
+    if sum(holding.weight for holding in result) > 1.005:
+        raise ValueError("Yahoo top holdings exceed 100%")
     return tuple(result)
 
 
@@ -107,40 +104,51 @@ def _parse_justetf_holdings(items: Any) -> tuple[Holding, ...]:
             weight=weight,
             isin=str(isin).strip().upper() if isin and str(isin).strip() else None,
         ))
+    if sum(holding.weight for holding in holdings) > 1.005:
+        raise ValueError("justETF top holdings exceed 100%")
     return tuple(holdings)
 
 
-def _resolve_ticker(isin: str) -> str:
-    """Best-effort search; always show resolved symbol in UI for verification."""
+def _resolve_ticker(isin: str, ticker_override: str = "") -> dict[str, Any]:
+    """Use Yahoo's first suitable ETF search result, or the user's chosen ticker."""
     import yfinance as yf
 
+    if ticker_override:
+        return {"symbol": ticker_override.strip().upper()}
     quotes = yf.Search(isin, max_results=20).quotes or []
     candidates = [q for q in quotes if str(q.get("symbol") or "").strip()]
     if not candidates:
         raise LookupError(f"Yahoo Finance could not resolve an exchange ticker for {isin}")
-
-    def priority(quote: dict[str, Any]) -> tuple[int, int, int, int]:
-        symbol = str(quote["symbol"]).upper()
-        explicit_isin = str(quote.get("isin") or "").upper()
-        return (
-            int(explicit_isin == isin),
-            int(str(quote.get("quoteType") or "").upper() == "ETF"),
-            int(str(quote.get("currency") or "").upper() == "EUR"),
-            int(symbol.endswith(_EUR_EXCHANGES)),
-        )
 
     # No blind guess when Yahoo explicitly identifies a *different* ISIN.
     candidates = [
         q for q in candidates
         if not q.get("isin") or str(q["isin"]).upper() == isin
     ]
+    candidates = [q for q in candidates if str(q.get("quoteType") or "ETF").upper() == "ETF"]
     if not candidates:
         raise LookupError(f"Yahoo returned no listing matching ISIN {isin}")
-    candidates.sort(key=priority, reverse=True)
-    return str(candidates[0]["symbol"]).strip()
+    return candidates[0]
 
 
-def _spot_price(ticker: Any) -> tuple[float, str, str]:
+def _verify_listing(isin: str, candidate: dict, info: dict) -> tuple[str | None, str]:
+    """Check identifiers when Yahoo supplies them; a missing ISIN is not a failure."""
+    if str(info.get("quoteType") or "ETF").upper() != "ETF":
+        raise ValueError(f"{isin}: selected Yahoo listing is not an ETF")
+    identities = [(candidate.get("isin"), "Yahoo search"), (info.get("isin"), "Yahoo quote")]
+    matched = None
+    source = ""
+    for value, origin in identities:
+        value = str(value or "").strip().upper()
+        if not re.fullmatch(r"[A-Z]{2}[A-Z0-9]{9}[0-9]", value):
+            continue
+        if value != isin:
+            raise ValueError(f"{isin}: Yahoo listing reports a different ISIN ({value}); choose another ticker")
+        matched, source = value, origin
+    return matched, source
+
+
+def _spot_price(ticker: Any) -> tuple[float, str, dict[str, Any], str]:
     """Fetch current/latest quote metadata; no explicit history call."""
     info: dict[str, Any] = {}
     try:
@@ -148,30 +156,31 @@ def _spot_price(ticker: Any) -> tuple[float, str, str]:
     except Exception:
         pass
 
-    price = next((v for v in (
-        _positive_number(info.get("regularMarketPrice")),
-        _positive_number(info.get("currentPrice")),
-        _positive_number(info.get("previousClose")),
-    ) if v is not None), None)
+    price, basis = None, ""
+    for key in ("regularMarketPrice", "currentPrice", "previousClose"):
+        if (price := _positive_number(info.get(key))) is not None:
+            basis = key
+            break
     currency = str(info.get("currency") or "").strip()
-    name = str(info.get("longName") or info.get("shortName") or "").strip()
 
     if price is None or not currency:
         try:
             fast = ticker.fast_info
             if price is None:
                 price = _positive_number(fast.get("last_price"))
+                basis = "fast_info last_price"
             if not currency:
                 currency = str(fast.get("currency") or "").strip()
+            if not info.get("exchange"):
+                info["exchange"] = fast.get("exchange")
         except Exception:
             pass
 
     if price is None or not currency:
         raise ValueError("Yahoo Finance did not provide a usable price and quote currency")
-    return price, currency, name
+    return price, currency, info, basis
 
 
-@lru_cache(maxsize=32)
 def eur_conversion(currency: str) -> float:
     """Multiply a quote by this factor to get EUR (GBp/GBX are pence)."""
     import yfinance as yf
@@ -199,73 +208,134 @@ def eur_conversion(currency: str) -> float:
     return multiplier * price
 
 
-def fetch_etf(isin: str) -> ETFData:
-    """Download the small supported data set exactly once per provider/ETF.
+def _fund_details(overview: dict[str, Any]) -> dict[str, str]:
+    """Only documented justetf-scraping fields; fund_size_eur is in EUR millions."""
+    details = {}
+    for key, label in (
+        ("fund_domicile", "Domicile"), ("replication", "Replication"),
+        ("fund_currency", "Fund currency"), ("distribution_policy", "Distribution"),
+        ("index", "Index"), ("fund_provider", "Fund provider"),
+    ):
+        value = overview.get(key)
+        if isinstance(value, str) and value.strip():
+            details[label] = value.strip()
+    ter = overview.get("ter")  # Percentage points: 0.19 means 0.19% per year.
+    if ter is not None:
+        try:
+            ter = float(ter)
+            if math.isfinite(ter) and ter >= 0:
+                details["TER (per year)"] = f"{ter:.2f}%"
+        except (TypeError, ValueError):
+            pass
+    size = _positive_number(overview.get("fund_size_eur"))
+    if size is not None:
+        details["Fund size / AUM"] = f"EUR {size:,.2f} million"
+    return details
 
-    Failure to obtain a quote is fatal: portfolio weights need valid EUR prices.
-    Sector/holding provider errors are nonfatal and surfaced as warnings.
-    """
-    import yfinance as yf
-    import justetf_scraping
 
+def fetch_etf(isin: str, ticker_override: str = "") -> ETFData:
+    """Fetch providers independently; missing prices prevent portfolio valuation only."""
     isin = isin.strip().upper()
     if not re.fullmatch(r"[A-Z]{2}[A-Z0-9]{9}[0-9]", isin):
         raise ValueError(f"Invalid ISIN format: {isin!r}")
-
-    symbol = _resolve_ticker(isin)
-    yf_ticker = yf.Ticker(symbol)
-    quote_price, currency, yahoo_name = _spot_price(yf_ticker)
-    price_eur = quote_price * eur_conversion(currency)
     warnings: list[str] = []
+    retrieved_at = {}
 
-    yahoo: Breakdown | None = None
-    try:
-        # Call get_funds_data only once: reuse its sector and holdings fields.
-        fund = yf_ticker.get_funds_data()
-        if fund is None:
-            raise ValueError("No fund details returned")
-        sectors = _parse_yf_sectors(getattr(fund, "sector_weightings", None))
-        holdings = _parse_yf_holdings(getattr(fund, "top_holdings", None))
-        if sectors or holdings:
-            yahoo = Breakdown(sectors=sectors, holdings=holdings)
-        if not sectors:
-            warnings.append(f"{isin}: yfinance sector allocation unavailable")
-        if not holdings:
-            warnings.append(f"{isin}: yfinance top holdings unavailable")
-    except Exception as exc:
-        warnings.append(f"{isin}: yfinance fund data unavailable ({exc})")
+    def dataset(label, getter, parser, empty):
+        # A bad field must not discard other usable fields from the same provider.
+        try:
+            value = parser(getter())
+            if value:
+                return value
+            warnings.append(f"{isin}: {label} unavailable")
+        except Exception as exc:
+            warnings.append(f"{isin}: {label} unavailable ({exc})")
+        return empty
 
     justetf: Breakdown | None = None
     justetf_name = ""
+    details = {}
+    holdings_date = ""
     try:
+        import justetf_scraping
         # No Gettex socket, historical price downloads, or full constituents.
         overview = justetf_scraping.get_etf_overview(
             isin, include_gettex=False, expand_allocations=True
         )
         if not isinstance(overview, dict) or not overview:
             raise ValueError("Empty justETF profile")
+        details = _fund_details(overview)
+        holdings_date = str(overview.get("holdings_date") or "")
         justetf_name = str(overview.get("name") or "").strip()
-        sectors = _parse_justetf_allocation(overview.get("sectors"))
-        countries = _parse_justetf_allocation(overview.get("countries"))
-        holdings = _parse_justetf_holdings(overview.get("top_holdings"))
-        if sectors or countries or holdings:
-            justetf = Breakdown(sectors=sectors, countries=countries, holdings=holdings)
-        for key, allocation in (("sectors", sectors), ("countries", countries)):
-            if not allocation:
-                warnings.append(f"{isin}: justETF {key} unavailable")
-        if not holdings:
-            warnings.append(f"{isin}: justETF top holdings unavailable")
+        sectors = dataset("justETF sectors", lambda: overview.get("sectors"), _parse_justetf_allocation, {})
+        countries = dataset("justETF countries", lambda: overview.get("countries"), _parse_justetf_allocation, {})
+        holdings = dataset("justETF top holdings", lambda: overview.get("top_holdings"), _parse_justetf_holdings, ())
+        justetf = Breakdown(sectors=sectors, countries=countries, holdings=holdings)
+        retrieved_at["justetf"] = datetime.now(timezone.utc)
     except Exception as exc:
         warnings.append(f"{isin}: justETF profile unavailable ({exc})")
 
+    # Yahoo search/price failures must not discard the ISIN-based justETF response.
+    symbol = ticker_override.strip().upper()
+    candidate, info = {}, {}
+    quote_price, price_eur, currency, quote_basis = None, None, "", ""
+    listing_isin, verification_source = None, ""
+    valuation_error = ""
+    yahoo: Breakdown | None = None
+    try:
+        import yfinance as yf
+        candidate = _resolve_ticker(isin, ticker_override)
+        symbol = str(candidate["symbol"]).strip().upper()
+        yf_ticker = yf.Ticker(symbol)
+        quote_price, currency, info, quote_basis = _spot_price(yf_ticker)
+        retrieved_at["quote"] = datetime.now(timezone.utc)
+        listing_isin, verification_source = _verify_listing(isin, candidate, info)
+        price_eur = quote_price * eur_conversion(currency)
+        if currency != "EUR":
+            retrieved_at["fx"] = datetime.now(timezone.utc)
+        if quote_basis == "previousClose":
+            warnings.append(f"{isin}: valuation uses Yahoo's previous close, not a current quote")
+        try:
+            fund = yf_ticker.get_funds_data()
+            if fund is None:
+                raise ValueError("No fund details returned")
+            sectors = dataset("Yahoo sectors", lambda: fund.sector_weightings, _parse_yf_sectors, {})
+            holdings = dataset("Yahoo top holdings", lambda: fund.top_holdings, _parse_yf_holdings, ())
+            yahoo = Breakdown(sectors=sectors, holdings=holdings)
+            retrieved_at["yfinance"] = datetime.now(timezone.utc)
+        except Exception as exc:
+            warnings.append(f"{isin}: Yahoo allocations unavailable ({exc})")
+    except Exception as exc:
+        price_eur = None
+        valuation_error = f"{isin}: Yahoo price or EUR conversion unavailable ({exc})"
+        warnings.append(valuation_error)
+
+    bid, ask = _positive_number(info.get("bid")), _positive_number(info.get("ask"))
+    spread = (ask - bid) / ((ask + bid) / 2) if bid and ask and ask >= bid else None
+    market_time = _positive_number(info.get("regularMarketTime"))
+    quote_as_of = (
+        datetime.fromtimestamp(market_time, timezone.utc)
+        if market_time and quote_basis in ("regularMarketPrice", "currentPrice") else None
+    )
     return ETFData(
         isin=isin,
         ticker=symbol,
-        name=justetf_name or yahoo_name or symbol,
+        name=justetf_name or str(info.get("longName") or info.get("shortName") or symbol),
         quote_price=quote_price,
         quote_currency=currency,
         unit_price_eur=price_eur,
         yfinance=yahoo,
         justetf=justetf,
         warnings=tuple(warnings),
+        exchange=str(info.get("fullExchangeName") or info.get("exchange") or candidate.get("exchange") or ""),
+        listing_isin=listing_isin,
+        listing_verified=listing_isin == isin,
+        verification_source=verification_source,
+        retrieved_at=retrieved_at,
+        quote_as_of=quote_as_of,
+        quote_basis=quote_basis,
+        fund_details=details,
+        spread_fraction=spread,
+        holdings_date=holdings_date,
+        valuation_error=valuation_error,
     )

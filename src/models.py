@@ -25,12 +25,23 @@ class ETFData:
     isin: str
     ticker: str
     name: str
-    quote_price: float
+    quote_price: float | None
     quote_currency: str
-    unit_price_eur: float
+    unit_price_eur: float | None
     yfinance: Breakdown | None
     justetf: Breakdown | None
     warnings: tuple[str, ...] = ()
+    exchange: str = ""
+    listing_isin: str | None = None
+    listing_verified: bool = False
+    verification_source: str = ""
+    retrieved_at: dict[str, datetime] = field(default_factory=dict)
+    quote_as_of: datetime | None = None
+    quote_basis: str = ""
+    fund_details: dict[str, str] = field(default_factory=dict)  # justETF, with units.
+    spread_fraction: float | None = None  # Yahoo (ask - bid) / midpoint.
+    holdings_date: str = ""  # justETF's reported date, when supplied.
+    valuation_error: str = ""
 
 
 @dataclass(frozen=True)
@@ -40,6 +51,8 @@ class Position:
 
     @property
     def value_eur(self) -> float:
+        if self.etf.unit_price_eur is None:
+            raise ValueError(f"{self.etf.isin}: EUR price is unavailable")
         return self.units * self.etf.unit_price_eur
 
 

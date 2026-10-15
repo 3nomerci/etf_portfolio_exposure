@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from dataclasses import replace
 
 import pandas as pd
 import pytest
 
 from src.models import Breakdown, ETFData, Holding, PortfolioSnapshot, Position
 from src.portfolio import (
-    build_portfolio, exposure, normalize_sector, source_coverage, validate_portfolio,
+    build_portfolio, exposure, normalize_sector, reported_coverage, source_coverage, validate_portfolio,
 )
 from src.plots import exposure_chart
 from src.external_services.data_fetch import (
@@ -24,6 +25,7 @@ def sample_snapshot() -> PortfolioSnapshot:
     a = ETFData(
         isin=ISIN_A, ticker="A.MI", name="Fund A",
         quote_price=100.0, quote_currency="EUR", unit_price_eur=100,
+        listing_verified=True,
         yfinance=Breakdown(
             sectors={"technology": 0.6, "financial_services": 0.4},
             holdings=(Holding("Apple Inc.", 0.1, symbol="AAPL"),),
@@ -37,6 +39,7 @@ def sample_snapshot() -> PortfolioSnapshot:
     b = ETFData(
         isin=ISIN_B, ticker="B.MI", name="Fund B",
         quote_price=200.0, quote_currency="EUR", unit_price_eur=200,
+        listing_verified=True,
         yfinance=Breakdown(
             sectors={"technology": 0.2, "healthcare": 0.8},
             holdings=(Holding("Apple Inc.", 0.05, symbol="AAPL"),),
@@ -157,7 +160,8 @@ def test_sector_normalization_examples():
     assert normalize_sector("Business Services") != normalize_sector("Consumer Services")
 
 
-def test_download_etf_fetches_each_provider_once(monkeypatch):
+@pytest.mark.parametrize("failure", [None, "yahoo_sectors", "yahoo_holdings", "justetf", "justetf_sectors"])
+def test_download_etf_fetches_each_provider_once(monkeypatch, failure):
     """Provider calls are coalesced: don't re-request allocations for each plot."""
     import sys
     from types import SimpleNamespace
@@ -168,14 +172,15 @@ def test_download_etf_fetches_each_provider_once(monkeypatch):
     class FakeTicker:
         def get_info(self):
             counts["quote"] += 1
-            return {"regularMarketPrice": 200, "currency": "EUR", "longName": "Test ETF"}
+            return {"regularMarketPrice": 200, "currency": "EUR", "longName": "Test ETF",
+                    "exchange": "MIL", "bid": 199, "ask": 201}
 
         def get_funds_data(self):
             counts["fund"] += 1
             return SimpleNamespace(
-                sector_weightings={"technology": 0.6, "healthcare": 0.4},
+                sector_weightings={"technology": 2} if failure == "yahoo_sectors" else {"technology": 0.6, "healthcare": 0.4},
                 top_holdings=pd.DataFrame(
-                    {"Name": ["Apple Inc"], "Holding Percent": [0.05]},
+                    {"Name": ["Apple Inc"], "Holding Percent": [2 if failure == "yahoo_holdings" else 0.05]},
                     index=["AAPL"],
                 ),
             )
@@ -184,11 +189,15 @@ def test_download_etf_fetches_each_provider_once(monkeypatch):
         counts["justetf"] += 1
         assert include_gettex is False
         assert expand_allocations is True
+        if failure == "justetf":
+            raise ConnectionError("Provider unavailable")
         return {
             "name": "Test ETF",
-            "sectors": [{"name": "Technology", "percentage": 60}, {"name": "Finance", "percentage": 40}],
+            "sectors": [{"name": "Technology", "percentage": 200}] if failure == "justetf_sectors" else [{"name": "Technology", "percentage": 60}, {"name": "Finance", "percentage": 40}],
             "countries": [{"name": "USA", "percentage": 100}],
             "top_holdings": [{"name": "Apple Inc", "percentage": 5, "isin": "US0378331005"}],
+            "ter": 0.19, "fund_size_eur": 18588, "fund_domicile": "Ireland",
+            "replication": "Physical", "holdings_date": "2026-09-30",
         }
 
     monkeypatch.setitem(sys.modules, "yfinance", SimpleNamespace(
@@ -202,8 +211,23 @@ def test_download_etf_fetches_each_provider_once(monkeypatch):
     ))
     etf = data_fetch.fetch_etf(ISIN_A)
     assert etf.unit_price_eur == 200
-    assert etf.yfinance is not None and etf.justetf is not None
-    assert etf.justetf.countries == {"USA": 1.0}
+    assert etf.yfinance is not None
+    assert bool(etf.yfinance.sectors) == (failure != "yahoo_sectors")
+    assert bool(etf.yfinance.holdings) == (failure != "yahoo_holdings")
+    if failure == "justetf":
+        assert etf.justetf is None
+    else:
+        assert etf.justetf.countries == {"USA": 1.0}
+        assert bool(etf.justetf.sectors) == (failure != "justetf_sectors")
+        assert etf.justetf.holdings
+        assert etf.fund_details["TER (per year)"] == "0.19%"
+        assert etf.fund_details["Fund size / AUM"] == "EUR 18,588.00 million"
+        assert etf.holdings_date == "2026-09-30"
+        assert etf.retrieved_at["justetf"].tzinfo is not None
+    assert bool(etf.warnings) == bool(failure)
+    assert etf.listing_verified and etf.listing_isin == ISIN_A
+    assert etf.exchange == "MIL"
+    assert etf.spread_fraction == pytest.approx(.01)
     assert counts == {"fund": 1, "justetf": 1, "quote": 1}
 
 
@@ -212,3 +236,106 @@ def test_yahoo_unreported_sector_fraction():
     assert sectors["Unreported"] == pytest.approx(.3)
     with pytest.raises(ValueError):
         _parse_yf_sectors({"technology": .8, "financials": .8})
+
+
+def test_listing_verification_rejects_conflicting_isin_and_non_etf():
+    from src.external_services.data_fetch import _verify_listing
+
+    assert _verify_listing(ISIN_A, {"isin": ISIN_A}, {})[0] == ISIN_A
+    assert _verify_listing(ISIN_A, {}, {}) == (None, "")
+    with pytest.raises(ValueError, match="different ISIN"):
+        _verify_listing(ISIN_A, {"isin": ISIN_A}, {"isin": ISIN_B})
+    with pytest.raises(ValueError, match="not an ETF"):
+        _verify_listing(ISIN_A, {}, {"quoteType": "EQUITY"})
+
+
+def test_missing_yahoo_isin_does_not_block_valuation():
+    etf = replace(sample_snapshot().positions[0].etf, listing_verified=False)
+    data = pd.DataFrame({"isin": [ISIN_A], "position": [2]})
+    assert build_portfolio(data, lambda _: etf).total_eur == 200
+    with pytest.raises(ValueError, match="does not match"):
+        build_portfolio(data, lambda _: replace(etf, listing_isin=ISIN_B))
+
+
+@pytest.mark.parametrize("bad_price", [None, 0, -1, float("nan"), float("inf")])
+def test_one_invalid_valuation_blocks_the_whole_portfolio(bad_price):
+    a, b = sample_snapshot().positions
+    bad = replace(b.etf, unit_price_eur=bad_price)
+    data = pd.DataFrame({"isin": [ISIN_A, ISIN_B], "position": [2, 4]})
+    with pytest.raises(ValueError, match="invalid valuation"):
+        build_portfolio(data, lambda isin: a.etf if isin == ISIN_A else bad)
+
+
+def test_reported_coverage_and_original_sector_names():
+    snapshot = sample_snapshot()
+    assert source_coverage(snapshot, "holdings", "yfinance") == 1
+    assert reported_coverage(snapshot, "holdings", "yfinance") == pytest.approx(.06)
+    assert reported_coverage(snapshot, "countries", "justetf") == pytest.approx(.98)
+    frames = {source: exposure(snapshot, "sectors", source, original_sectors=True)
+              for source in ("yfinance", "justetf")}
+    assert "financial_services" in set(frames["yfinance"]["category"])
+    assert "Finance" in set(frames["justetf"]["category"])
+    fig = exposure_chart(frames, kind="sectors", title="Original names", side_by_side=True)
+    assert fig.layout.barmode == "group"
+    assert "Technology" in fig.data[0].y and "technology" in fig.data[0].y
+
+
+def test_gbp_pence_conversion_and_missing_fx(monkeypatch):
+    import sys
+    from types import SimpleNamespace
+    from src.external_services.data_fetch import eur_conversion
+
+    info = {"regularMarketPrice": 1.2}
+    monkeypatch.setitem(sys.modules, "yfinance", SimpleNamespace(
+        Ticker=lambda _: SimpleNamespace(get_info=lambda: info, fast_info={}),
+    ))
+    assert eur_conversion("GBp") == pytest.approx(.012)
+    assert eur_conversion("GBX") == pytest.approx(.012)
+    assert eur_conversion("GBP") == pytest.approx(1.2)
+    info.clear()
+    with pytest.raises(ValueError, match="Invalid conversion"):
+        eur_conversion("GBP")
+
+
+@pytest.mark.parametrize("yahoo_failure", [False, True])
+def test_isin_search_without_yahoo_identifier_and_independent_justetf(monkeypatch, yahoo_failure):
+    import sys
+    from types import SimpleNamespace
+    from src.external_services import data_fetch
+    from src.portfolio import etf_exposure
+
+    class FakeTicker:
+        def get_info(self):
+            if yahoo_failure:
+                raise ConnectionError("Yahoo is unavailable")
+            return {"regularMarketPrice": 13.12, "currency": "USD", "exchange": "LSE"}
+
+        def get_funds_data(self):
+            return SimpleNamespace(sector_weightings={"technology": 1}, top_holdings=None)
+
+    monkeypatch.setitem(sys.modules, "yfinance", SimpleNamespace(
+        Search=lambda *a, **kw: SimpleNamespace(quotes=[
+            {"symbol": "IMID.L", "quoteType": "ETF"},
+            {"symbol": "OTHER.DE", "quoteType": "ETF", "currency": "EUR"},
+        ]), Ticker=lambda _: FakeTicker(),
+    ))
+    monkeypatch.setitem(sys.modules, "justetf_scraping", SimpleNamespace(
+        get_etf_overview=lambda *a, **kw: {
+            "name": "Test ETF", "sectors": [{"name": "Technology", "percentage": 100}],
+        },
+    ))
+    monkeypatch.setattr(data_fetch, "eur_conversion", lambda currency: .9)
+    etf = data_fetch.fetch_etf(ISIN_A)
+    assert etf.ticker == "IMID.L"  # Preserve Yahoo's result order.
+    assert not etf.listing_verified
+    assert etf_exposure(etf, "sectors", "justetf").to_dict("records") == [
+        {"category": "Technology", "weight": 1},
+    ]
+    portfolio = pd.DataFrame({"isin": [ISIN_A], "position": [2]})
+    if yahoo_failure:
+        assert etf.unit_price_eur is None and etf.valuation_error
+        with pytest.raises(ValueError, match="EUR conversion unavailable"):
+            build_portfolio(portfolio, lambda _: etf)
+    else:
+        assert etf.unit_price_eur == pytest.approx(13.12 * .9)
+        assert build_portfolio(portfolio, lambda _: etf).total_eur == pytest.approx(2 * 13.12 * .9)

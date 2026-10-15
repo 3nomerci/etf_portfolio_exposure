@@ -43,10 +43,11 @@ def load_portfolio_csv(path: str | Path) -> pd.DataFrame:
     return validate_portfolio(pd.read_csv(path, dtype={"isin": str}))
 
 
-def save_portfolio_csv(data: pd.DataFrame, path: str | Path) -> None:
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    validate_portfolio(data).to_csv(path, index=False)
+def save_portfolio_csv(data: pd.DataFrame, path: str | Path) -> None: # must be removed before public release / it would save portfolio on the streamlit server
+    print("REMEMBER TO REMOVE THIS!")
+    # path = Path(path)
+    # path.parent.mkdir(parents=True, exist_ok=True)
+    # validate_portfolio(data).to_csv(path, index=False)
 
 
 def build_portfolio(
@@ -59,6 +60,16 @@ def build_portfolio(
         Position(etf=loader(str(row.isin)), units=float(row.position))
         for row in clean.itertuples(index=False)
     )
+    for requested_isin, position in zip(clean["isin"], positions):
+        etf = position.etf
+        if etf.isin != requested_isin or (etf.listing_isin and etf.listing_isin != requested_isin):
+            raise ValueError("Loaded ETF does not match the requested portfolio")
+        if etf.valuation_error:
+            raise ValueError(etf.valuation_error)
+        if not all(value is not None and math.isfinite(value) and value > 0 for value in (
+            etf.quote_price, etf.unit_price_eur,
+        )) or not etf.quote_currency:
+            raise ValueError(f"{etf.isin}: missing or invalid valuation; portfolio totals are unavailable")
     snapshot = PortfolioSnapshot(positions=positions, loaded_at=datetime.now(timezone.utc))
     if not math.isfinite(snapshot.total_eur) or snapshot.total_eur <= 0:
         raise ValueError("Portfolio must have a positive finite EUR market value")
@@ -79,6 +90,22 @@ def source_coverage(snapshot: PortfolioSnapshot, kind: Kind, source: Source) -> 
         and bool(getattr(breakdown, kind))
     )
     return covered / total
+
+
+def reported_coverage(snapshot: PortfolioSnapshot, kind: Kind, source: Source) -> float:
+    """Reported allocations as a fraction of the full portfolio, excluding unknowns."""
+    reported = 0.0
+    for position in snapshot.positions:
+        breakdown = _breakdown(position, source)
+        if breakdown is None:
+            continue
+        if kind == "holdings":
+            fraction = sum(holding.weight for holding in breakdown.holdings)
+        else:
+            fraction = sum(value for label, value in getattr(breakdown, kind).items()
+                           if label.casefold() != "unreported")
+        reported += position.value_eur / snapshot.total_eur * min(fraction, 1.0)
+    return reported
 
 
 # Canonical display labels. Some near-equivalences are only approximate.
@@ -123,6 +150,18 @@ def normalize_holding_name(name: str) -> str:
     return re.sub(r"(?:\s+(?:inc|corp|corporation|ltd|limited|plc))+$", "", key).strip()
 
 
+def etf_exposure(etf: ETFData, kind: Kind, source: Source) -> pd.DataFrame:
+    """One ETF's original reported weights, usable without a market price."""
+    breakdown = getattr(etf, source)
+    if breakdown is None:
+        return pd.DataFrame(columns=["category", "weight"])
+    values = (
+        [(holding.name, holding.weight) for holding in breakdown.holdings]
+        if kind == "holdings" else list(getattr(breakdown, kind).items())
+    )
+    return pd.DataFrame(values, columns=["category", "weight"])
+
+
 def exposure(
     snapshot: PortfolioSnapshot,
     kind: Kind,
@@ -130,6 +169,7 @@ def exposure(
     *,
     aggregate: bool = True,
     top_n: int | None = None,
+    original_sectors: bool = False,
 ) -> pd.DataFrame:
     """Return 'category,weight' with weights relative to the *full* portfolio.
 
@@ -164,7 +204,7 @@ def exposure(
                 )
         else:
             for category, fraction in getattr(breakdown, kind).items():
-                label = normalize_sector(category) if kind == "sectors" else category
+                label = normalize_sector(category) if kind == "sectors" and not original_sectors else category
                 key = label if aggregate else f"{position.etf.isin}:{label}"
                 weights[key] += factor * fraction
                 display.setdefault(

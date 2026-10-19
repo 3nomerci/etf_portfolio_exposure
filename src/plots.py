@@ -61,20 +61,19 @@ def exposure_chart(
 
     fig = go.Figure()
     comparing = len(available) > 1 and not side_by_side
-    for source in ("yfinance", "justetf"):
-        if source not in available:
-            continue
+    for index, source in enumerate(available):
+        label = _LABELS.get(source, source)
         vals = [combined[key].get(source) for key in ordered]
         fig.add_trace(go.Bar(
             x=vals,
             y=categories,
-            name=_LABELS[source],
+            name=label,
             orientation="h",
             width=None if side_by_side else ((0.72 if source == "yfinance" else 0.40) if comparing else 0.66),
             opacity=(0.53 if source == "yfinance" else 0.94) if comparing else 0.95,
-            marker_color=_COLORS[source],
+            marker_color=_COLORS.get(source, ("#4477AA", "#DB6B34")[index % 2]),
             marker_line_width=0,
-            hovertemplate=f"<b>%{{y}}</b><br>{_LABELS[source]}: %{{x:.2%}}<extra></extra>",
+            hovertemplate=f"<b>%{{y}}</b><br>{label}: %{{x:.2%}}<extra></extra>",
         ))
 
     fig.update_layout(

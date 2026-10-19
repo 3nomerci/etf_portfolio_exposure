@@ -9,6 +9,7 @@ import pandas as pd
 import streamlit as st
 
 from src.external_services.data_fetch import fetch_etf
+from src.comparison import portfolio_comparison
 from src.plots import exposure_chart
 from src.portfolio import (
     build_portfolio,
@@ -272,3 +273,9 @@ if any(not frame.empty for frame in frames.values()):
         )
 else:
     st.warning("No exposure data is available for the selected chart and source.")
+
+st.divider()
+portfolio_comparison(
+    snapshot, cached_etf,
+    dict(zip(st.session_state.listing_choices["isin"], st.session_state.listing_choices["ticker"])),
+)

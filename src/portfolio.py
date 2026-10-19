@@ -42,14 +42,6 @@ def load_portfolio_csv(path: str | Path) -> pd.DataFrame:
         return pd.DataFrame({"isin": pd.Series(dtype="str"), "position": pd.Series(dtype="float")})
     return validate_portfolio(pd.read_csv(path, dtype={"isin": str}))
 
-
-def save_portfolio_csv(data: pd.DataFrame, path: str | Path) -> None: # must be removed before public release / it would save portfolio on the streamlit server
-    print("REMEMBER TO REMOVE THIS!")
-    # path = Path(path)
-    # path.parent.mkdir(parents=True, exist_ok=True)
-    # validate_portfolio(data).to_csv(path, index=False)
-
-
 def build_portfolio(
     data: pd.DataFrame,
     loader: Callable[[str], ETFData],

@@ -48,6 +48,13 @@ uv run pytest
    the last submitted inputs. Quotes and any needed currency conversions are fetched
    together. If pricing fails, previous totals and portfolio charts are hidden;
    individual ETF charts from justETF remain available without market prices.
+6. Open **Compare two portfolios** at the bottom. Portfolio 1 is the currently loaded
+   portfolio. Edit Portfolio 2 (initially a copy), or upload another `isin,position`
+   CSV, then click **Compare portfolios**. Compare sectors, geography or reported top
+   holdings with side-by-side bars from one provider. Each portfolio's percentages
+   use its own total value; common ETFs use exactly the same prices. Changing charts
+   makes no new requests. After reloading Portfolio 1, click **Compare portfolios**
+   again. Neither comparison runs with an incomplete valuation.
 
 ## Organization
 
@@ -58,6 +65,7 @@ src/external_services/data_fetch.py  All network requests, listing checks, provi
 src/portfolio.py               CSV, valuation, exposure aggregation
 src/plots.py                   Plotly horizontal bar charts
 src/ui.py                      Data-quality panels and retrieval-time display
+src/comparison.py              Two-portfolio comparison UI using the same loader
 data/portfolio.example.csv      Illustrative input
 ```
 

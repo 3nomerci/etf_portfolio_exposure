@@ -280,6 +280,19 @@ def test_reported_coverage_and_original_sector_names():
     assert "Technology" in fig.data[0].y and "technology" in fig.data[0].y
 
 
+def test_portfolio_comparison_chart_labels_and_missing_categories():
+    frames = {
+        "Portfolio 1 (current)": pd.DataFrame({"category": ["Technology", "Finance"], "weight": [.6, .4]}),
+        "Portfolio 2": pd.DataFrame({"category": ["Technology", "Energy"], "weight": [.3, .7]}),
+    }
+    fig = exposure_chart(frames, kind="sectors", title="Comparison", side_by_side=True)
+    assert fig.layout.barmode == "group"
+    assert [trace.name for trace in fig.data] == list(frames)
+    first, second = [dict(zip(trace.y, trace.x)) for trace in fig.data]
+    assert first == {"Technology": .6, "Finance": .4, "Energy": None}
+    assert second == {"Technology": .3, "Finance": None, "Energy": .7}
+
+
 def test_gbp_pence_conversion_and_missing_fx(monkeypatch):
     import sys
     from types import SimpleNamespace

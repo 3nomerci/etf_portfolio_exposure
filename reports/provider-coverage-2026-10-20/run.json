@@ -1,0 +1,18 @@
+{
+  "started_at_utc": "2026-10-20T09:55:26.456837+00:00",
+  "sample": "reports\\provider-coverage-2026-10-20\\sample.csv",
+  "selection": "100 largest long-only ETFs by reported fund size in justETF's EUR screener",
+  "selection_source": "https://www.justetf.com/en/search.html?search=ETFS",
+  "yfinance_version": "1.7.0",
+  "justetf_scraping_version": "0.1.0",
+  "fetch_code_sha256": "58f252ab0d005160ce871c76b660305be2137189d514a98575641dfc370fd8de",
+  "note": "One sequential pass, no retries. Main-page fallback is measured diagnostically, not applied to the app. Missing is not zero.",
+  "finished_at_utc": "2026-10-20T09:59:04.997807+00:00",
+  "justetf_scraping_source": {
+    "url": "https://github.com/druzsan/justetf-scraping.git",
+    "vcs_info": {
+      "vcs": "git",
+      "commit_id": "53cca6aaba5c97068ae0b6385d28a729dfdbf2a1"
+    }
+  }
+}

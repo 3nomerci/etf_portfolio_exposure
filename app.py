@@ -20,7 +20,7 @@ from src.portfolio import (
     source_coverage,
     validate_portfolio,
 )
-from src.ui import SOURCE_LABELS, etf_quality_panel, retrieval_range
+from src.ui import SOURCE_LABELS, allocation_warnings, etf_quality_panel, retrieval_range
 
 BASE = Path(__file__).resolve().parent
 LOCAL_CSV = BASE / "data" / "portfolio.csv"
@@ -31,7 +31,7 @@ st.set_page_config(page_title="ETF Portfolio Exposure", page_icon="📊", layout
 
 @st.cache_data(ttl=3600, show_spinner=False, max_entries=256) # ttl: max time to keep entry in cache
 def cached_etf(isin: str, ticker_override: str = ""):
-    """Cache public provider responses; portfolio positions stay in session state."""
+    """Cache public ETF responses, including justETF page-fallback provenance."""
     return fetch_etf(isin, ticker_override)
 
 
@@ -162,9 +162,15 @@ snapshot = st.session_state.snapshot
 if st.session_state.get("load_error"):
     st.warning(f"Portfolio total unavailable: {st.session_state.load_error}")
 etfs = list(st.session_state.etf_data.values())
+allocation_warnings(etfs)
 etf_quality_panel(etfs, snapshot)
 if not etfs:
     st.info("Click Load portfolio data to fetch Yahoo prices and justETF allocations.")
+    st.divider()
+    portfolio_comparison(
+        st.session_state.portfolio_df, cached_etf,
+        dict(zip(st.session_state.listing_choices["isin"], st.session_state.listing_choices["ticker"])),
+    )
     st.stop()
 
 selected_etf = None
@@ -251,8 +257,10 @@ for source in sources:
         )
 
 if any(not frame.empty for frame in frames.values()):
+    incomplete = snapshot is not None and any(source_coverage(snapshot, kind, source) < 0.999 for source in sources)
     fig = exposure_chart(
-        frames, kind=kind, title=f"{selected_etf.name if selected_etf else 'Portfolio'} {chart_kind.lower()}",
+        frames, kind=kind, title=(f"{selected_etf.name if selected_etf else 'Portfolio'} {chart_kind.lower()}"
+                                 + (" (incomplete data)" if incomplete else "")),
         max_categories=max_categories,
         side_by_side=side_by_side,
         weight_label="Weight in selected ETF" if selected_etf else "Weight in total portfolio",
@@ -276,6 +284,6 @@ else:
 
 st.divider()
 portfolio_comparison(
-    snapshot, cached_etf,
+    st.session_state.portfolio_df, cached_etf,
     dict(zip(st.session_state.listing_choices["isin"], st.session_state.listing_choices["ticker"])),
 )

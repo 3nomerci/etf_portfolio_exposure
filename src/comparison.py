@@ -7,72 +7,85 @@ import streamlit as st
 
 from src.plots import exposure_chart
 from src.portfolio import build_portfolio, exposure, reported_coverage, source_coverage, validate_portfolio
-from src.ui import SOURCE_LABELS, retrieval_range
+from src.ui import SOURCE_LABELS, allocation_warnings, retrieval_range
 
 
-def portfolio_comparison(current, loader, ticker_overrides):
+def portfolio_comparison(initial_portfolio, loader, ticker_overrides):
     with st.expander("Compare two portfolios", expanded=False):
-        if current is None:
-            st.info("Load a portfolio with usable prices above before comparing portfolio weights.")
-            return
-        st.caption("The current loaded portfolio is Portfolio 1. Upload or edit Portfolio 2 below, "
-                   "using ISINs and numbers of ETF units. Common ETFs use the same prices in both portfolios.")
-        if "comparison" not in st.session_state:
+        st.caption("Upload or edit either portfolio below, using ISINs and numbers of ETF units. "
+                   "Both tables start as copies of the portfolio above; loading it first is not required. "
+                   "Common ETFs use the same prices in both portfolios.")
+        if "comparison" not in st.session_state or "inputs" not in st.session_state.comparison:
             st.session_state.comparison = {
-                "input": pd.DataFrame([{"isin": p.etf.isin, "position": p.units} for p in current.positions]),
-                "snapshot": None, "base": None, "error": None, "upload": None, "version": 0,
+                "inputs": [initial_portfolio.copy(), initial_portfolio.copy()],
+                "snapshots": None, "error": None, "uploads": [None, None], "versions": [0, 0],
             }
         state = st.session_state.comparison
-        upload = st.file_uploader("Import Portfolio 2 CSV", type="csv", key="comparison_upload")
-        if upload is not None:
-            digest = hashlib.sha256(upload.getvalue()).hexdigest()
-            if digest != state["upload"]:
-                state["snapshot"] = None
-                try:
-                    state["input"] = validate_portfolio(pd.read_csv(BytesIO(upload.getvalue()), dtype={"isin": str}))
-                except Exception as exc:
-                    st.error(f"Cannot import Portfolio 2: {exc}")
-                else:
-                    state.update(upload=digest, version=state["version"] + 1, error=None)
+        for index, column in enumerate(st.columns(2)):
+            with column:
+                st.markdown(f"**Portfolio {index + 1}**")
+                upload = st.file_uploader(f"Import Portfolio {index + 1} CSV", type="csv",
+                                          key=f"comparison_upload_{index}")
+                if upload is not None:
+                    digest = hashlib.sha256(upload.getvalue()).hexdigest()
+                    if digest != state["uploads"][index]:
+                        state["snapshots"] = None
+                        try:
+                            state["inputs"][index] = validate_portfolio(
+                                pd.read_csv(BytesIO(upload.getvalue()), dtype={"isin": str}))
+                        except Exception as exc:
+                            st.error(f"Cannot import Portfolio {index + 1}: {exc}")
+                        else:
+                            state["uploads"][index] = digest
+                            state["versions"][index] += 1
+                            state["error"] = None
         with st.form("compare_portfolios"):
-            edited = st.data_editor(
-                state["input"], key=f"comparison_editor_{state['version']}",
-                num_rows="dynamic", hide_index=True, width="stretch",
-                column_config={
-                    "isin": st.column_config.TextColumn("ISIN", required=True),
-                    "position": st.column_config.NumberColumn("Position (units)", required=True,
-                                                             min_value=0.000000001, format="%.5f"),
-                },
-            )
+            edited = []
+            for index, column in enumerate(st.columns(2)):
+                with column:
+                    edited.append(st.data_editor(
+                        state["inputs"][index], key=f"comparison_editor_{index}_{state['versions'][index]}",
+                        num_rows="dynamic", hide_index=True, width="stretch",
+                        column_order=["isin", "position"],
+                        column_config={
+                            "isin": st.column_config.TextColumn("ISIN", required=True),
+                            "position": st.column_config.NumberColumn("Position (units)", required=True,
+                                                                     min_value=0.000000001, format="%.5f"),
+                        },
+                    ))
             compare_clicked = st.form_submit_button("Compare portfolios")
         if compare_clicked:
-            state.update(snapshot=None, error=None, base=current.loaded_at)
-            shared = {p.etf.isin: p.etf for p in current.positions}
+            state.update(snapshots=None, error=None)
+            shared = {}
 
             def load(isin):
                 if isin not in shared:
                     shared[isin] = loader(isin, ticker_overrides.get(isin, ""))
                 return shared[isin]
 
-            with st.spinner("Loading Portfolio 2…"):
+            with st.spinner("Loading both portfolios…"):
                 try:
-                    state["input"] = validate_portfolio(edited)
-                    state["snapshot"] = build_portfolio(state["input"], load)
+                    inputs = []
+                    for number, table in enumerate(edited, start=1):
+                        inputs.append(validate_portfolio(table))
+                    state["inputs"] = inputs
+                    snapshots = []
+                    for number, table in enumerate(inputs, start=1):
+                        snapshots.append(build_portfolio(table, load))
+                    state["snapshots"] = snapshots
                 except Exception as exc:
-                    state["error"] = str(exc)
-            state["version"] += 1
+                    state["error"] = f"Portfolio {number}: {exc}"
+            state["versions"] = [version + 1 for version in state["versions"]]
             st.rerun()
-        if state["base"] != current.loaded_at:
-            st.caption("Click Compare portfolios to compare against the current loaded portfolio.")
-            return
         if state["error"]:
             st.error(f"Cannot compare portfolios: {state['error']}")
             return
-        other = state["snapshot"]
-        if other is None:
+        if state["snapshots"] is None:
             return
 
-        portfolios = {"Portfolio 1 (current)": current, "Portfolio 2": other}
+        portfolios = dict(zip(("Portfolio 1", "Portfolio 2"), state["snapshots"]))
+        for label, snapshot in portfolios.items():
+            allocation_warnings([p.etf for p in snapshot.positions], label)
         for column, (label, snapshot) in zip(st.columns(2), portfolios.items()):
             column.metric(f"{label} value", f"€{snapshot.total_eur:,.2f}")
         chart = st.segmented_control("Compare exposures", ["Sectors", "Geography", "Top holdings"],
@@ -86,8 +99,10 @@ def portfolio_comparison(current, loader, ticker_overrides):
         frames = {label: exposure(snapshot, kind, source, original_sectors=True)
                   for label, snapshot in portfolios.items()}
         if any(not frame.empty for frame in frames.values()):
+            incomplete = any(source_coverage(snapshot, kind, source) < 0.999 for snapshot in portfolios.values())
             st.plotly_chart(exposure_chart(
-                frames, kind=kind, title=f"Portfolio comparison · {chart.lower()}", side_by_side=True,
+                frames, kind=kind, title=(f"Portfolio comparison · {chart.lower()}"
+                                         + (" (incomplete data)" if incomplete else "")), side_by_side=True,
                 max_categories=20 if kind == "holdings" else None, weight_label="Weight within each portfolio",
             ), width="stretch", key="portfolio_comparison_plot")
         else:

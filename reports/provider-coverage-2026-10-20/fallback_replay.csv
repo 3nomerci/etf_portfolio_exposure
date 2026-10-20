@@ -1,0 +1,53 @@
+isin,name,before,after,page_fallback
+IE00B5BMR087,iShares Core S&P 500 UCITS ETF USD (Acc),False,True,True
+IE00B4L5Y983,iShares Core MSCI World UCITS ETF USD (Acc),True,True,False
+IE00BK5BQT80,Vanguard FTSE All-World UCITS ETF (USD) Accumulating,True,True,False
+IE00B3XXRP09,Vanguard S&P 500 UCITS ETF (USD) Distributing,False,True,True
+IE00BKM4GZ66,iShares Core MSCI Emerging Markets IMI UCITS ETF (Acc),True,True,False
+IE00B3YCGJ38,Invesco S&P 500 UCITS ETF Acc,False,True,True
+IE00BFMXXD54,Vanguard S&P 500 UCITS ETF (USD) Accumulating,False,True,True
+IE00B6R52259,iShares MSCI All Country World UCITS ETF USD (Acc),True,True,False
+IE00B53SZB19,iShares Nasdaq 100 UCITS ETF (Acc),False,True,True
+IE00B3RBWM25,Vanguard FTSE All-World UCITS ETF (USD) Distributing,True,True,False
+LU0290358497,Xtrackers II EUR Overnight Rate Swap UCITS ETF 1C,False,False,False
+IE00BJ0KDQ92,Xtrackers MSCI World UCITS ETF 1C,True,True,False
+LU0908500753,Amundi Core Stoxx Europe 600 UCITS ETF Acc,True,True,False
+IE0031442068,iShares Core S&P 500 UCITS ETF USD (Dist),False,True,True
+IE0005042456,iShares Core FTSE 100 UCITS ETF GBP (Dist),False,True,True
+IE00B6YX5C33,State Street SPDR S&P 500 UCITS ETF USD Unhedged (Dist),False,True,True
+IE00BFY0GT14,State Street SPDR MSCI World UCITS ETF USD Unhedged (Acc),True,True,False
+IE00BGSF1X88,iShares USD Treasury Bond 0-1yr UCITS ETF (Acc),False,True,True
+IE00B44Z5B48,State Street SPDR MSCI All Country World UCITS ETF USD Unhedged (Acc),True,True,False
+IE000XZSV718,State Street SPDR S&P 500 UCITS ETF USD Unhedged (Acc),False,True,True
+IE00B3WJKG14,iShares S&P 500 Information Technology Sector UCITS ETF USD (Acc),False,True,True
+LU1135865084,Amundi Core S&P 500 Swap UCITS ETF Acc,False,True,True
+IE00BHZPJ890,iShares MSCI USA CTB Enhanced ESG UCITS ETF USD (Dist),False,True,True
+IE00BFNM3G45,iShares MSCI USA Screened UCITS ETF USD (Acc),False,True,True
+IE00B4K48X80,iShares Core MSCI Europe UCITS ETF EUR (Acc),True,True,False
+IE000BI8OT95,Amundi Core MSCI World UCITS ETF Acc,True,True,False
+IE00B4X9L533,HSBC MSCI World UCITS ETF USD,True,True,False
+IE00BMTX1Y45,iShares S&P 500 Swap UCITS ETF USD (Acc),False,True,True
+IE0032077012,Invesco EQQQ Nasdaq-100 UCITS ETF,False,True,True
+IE00BTJRMP35,Xtrackers MSCI Emerging Markets UCITS ETF 1C,True,True,False
+IE00BJ0KDR00,Xtrackers MSCI USA UCITS ETF 1C,False,True,True
+IE00BD4TXV59,UBS Core MSCI World UCITS ETF USD acc,True,True,False
+IE00BLNMYC90,Xtrackers S&P 500 Equal Weight UCITS ETF 1C,False,True,True
+IE00B1YZSC51,iShares Core MSCI Europe UCITS ETF EUR (Dist),True,True,False
+IE00B8GKDB10,Vanguard FTSE All-World High Dividend Yield UCITS ETF Distributing,True,True,False
+NL0011683594,VanEck Morningstar Developed Markets Dividend Leaders UCITS ETF,True,True,False
+DE0002635307,iShares STOXX Europe 600 UCITS ETF (DE),True,True,False
+IE00B60SX394,Invesco MSCI World UCITS ETF Acc,True,True,False
+DE0005933956,iShares EURO STOXX 50 UCITS ETF (DE),True,True,False
+IE00BYML9W36,Invesco S&P 500 UCITS ETF Dist,False,True,True
+IE00B3ZW0K18,iShares S&P 500 EUR Hedged UCITS ETF (Acc),False,True,True
+IE00B4L5YC18,iShares MSCI EM UCITS ETF (Acc),True,True,False
+IE00B5KQNG97,HSBC S&P 500 UCITS ETF USD,False,True,True
+FR0010315770,Amundi MSCI World Swap II UCITS ETF Dist,True,True,False
+IE00B3F81R35,iShares Core EUR Corporate Bond UCITS ETF (Dist),True,True,False
+IE00B0M63177,iShares MSCI EM UCITS ETF (Dist),True,True,False
+DE0005933931,iShares Core DAX® UCITS ETF (DE) EUR (Acc),False,True,True
+IE00B0M62Q58,iShares MSCI World UCITS ETF (Dist),True,True,False
+IE00BHZPJ908,iShares MSCI USA CTB Enhanced ESG UCITS ETF USD (Acc),False,True,True
+IE00B3YLTY66,State Street SPDR MSCI All Country World Investable Market UCITS ETF USD Unhedged (Acc),True,True,False
+IE00BGV5VN51,Xtrackers Artificial Intelligence & Big Data UCITS ETF 1C,True,True,False
+IE00BFMNPS42,Xtrackers MSCI USA ESG UCITS ETF 1C,False,True,True

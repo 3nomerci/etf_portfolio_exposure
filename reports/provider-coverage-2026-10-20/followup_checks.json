@@ -1,0 +1,83 @@
+{
+  "checked_at_utc": "2026-10-20T10:00:14.380868+00:00",
+  "yahoo_search_failures": [
+    {
+      "isin": "DE0005933931",
+      "quotes": [
+        {
+          "symbol": "DAXXF",
+          "shortname": null,
+          "longname": "iShares Core DAX UCITS ETF (DE)",
+          "quoteType": "MUTUALFUND",
+          "isin": null,
+          "exchange": "PNK"
+        }
+      ]
+    },
+    {
+      "isin": "IE00B53L3W79",
+      "quotes": []
+    },
+    {
+      "isin": "LU2572257124",
+      "quotes": [
+        {
+          "symbol": "LU2572257124.SG",
+          "shortname": "AMUNDI MSCI WORLD III - UCITS E",
+          "longname": null,
+          "quoteType": "MUTUALFUND",
+          "isin": null,
+          "exchange": "STU"
+        }
+      ]
+    },
+    {
+      "isin": "IE00B53QG562",
+      "quotes": []
+    },
+    {
+      "isin": "LU2263803533",
+      "quotes": [
+        {
+          "symbol": "LU2263803533.SG",
+          "shortname": "Xtrackers MSCI World Swap UCITS",
+          "longname": null,
+          "quoteType": "MUTUALFUND",
+          "isin": null,
+          "exchange": "STU"
+        }
+      ]
+    },
+    {
+      "isin": "DE000A0F5UF5",
+      "quotes": []
+    },
+    {
+      "isin": "LU2573966905",
+      "quotes": [
+        {
+          "symbol": "LU2573966905.SG",
+          "shortname": "Amundi MSCI Emerging Markets II",
+          "longname": null,
+          "quoteType": "MUTUALFUND",
+          "isin": null,
+          "exchange": "STU"
+        }
+      ]
+    }
+  ],
+  "justetf_followups": [
+    {
+      "isin": "IE00B5BMR087",
+      "error": "Failed to fetch ETF page for IE00B5BMR087: status 403"
+    },
+    {
+      "isin": "IE00BF4RFH31",
+      "error": "Failed to fetch ETF page for IE00BF4RFH31: status 403"
+    },
+    {
+      "isin": "IE00B7K93397",
+      "error": "Failed to fetch ETF page for IE00B7K93397: status 403"
+    }
+  ]
+}

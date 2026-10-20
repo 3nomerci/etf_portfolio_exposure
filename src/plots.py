@@ -82,8 +82,8 @@ def exposure_chart(
         plot_bgcolor="white",
         paper_bgcolor="white",
         font=dict(family="Arial, sans-serif", size=13),
-        legend=dict(orientation="h", x=0, y=1.08, yanchor="bottom"),
-        margin=dict(l=20, r=25, t=105, b=50),
+        legend=dict(orientation="h", x=0, y=0, yref="container", yanchor="bottom"),
+        margin=dict(l=20, r=25, t=80, b=110),
         height=max(440, min(1150, 110 + 32 * len(categories))),
         hovermode="closest",
     )

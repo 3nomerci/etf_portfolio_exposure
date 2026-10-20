@@ -1,0 +1,95 @@
+{
+  "retrieved_at": "2026-10-20T09:52:38.164213+00:00",
+  "name": "UBS Core S&P 500 UCITS ETF USD dis",
+  "current_countries": [],
+  "current_sectors": [
+    {
+      "name": "Technology",
+      "percentage": 44.7
+    },
+    {
+      "name": "Finance",
+      "percentage": 13.56
+    },
+    {
+      "name": "Healthcare",
+      "percentage": 9.05
+    },
+    {
+      "name": "Consumer Non-Cyclicals",
+      "percentage": 8.84
+    },
+    {
+      "name": "Industrials",
+      "percentage": 7.41
+    },
+    {
+      "name": "Energy",
+      "percentage": 3.43
+    },
+    {
+      "name": "Consumer Cyclicals",
+      "percentage": 3.25
+    },
+    {
+      "name": "Non-Energy Materials",
+      "percentage": 2.2
+    },
+    {
+      "name": "Consumer Services",
+      "percentage": 2.18
+    },
+    {
+      "name": "Utilities",
+      "percentage": 1.97
+    },
+    {
+      "name": "Business Services",
+      "percentage": 1.55
+    },
+    {
+      "name": "Telecommunication",
+      "percentage": 0.89
+    },
+    {
+      "name": "Other",
+      "percentage": 0.97
+    }
+  ],
+  "responses": [
+    {
+      "url": "https://www.justetf.com/en/etf-profile.html?isin=IE00B7K93397",
+      "status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "prefix": "<!DOCTYPE html> <html prefix=\"og: http://ogp.me/ns#\" xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en-XE\" lang=\"en-XE\" data-testid=\"translated-page_html\"> <head> <script>\n/*<![CDATA[*/\n\n        windo",
+      "main_page_country_rows": [
+        {
+          "name": "United States",
+          "percentage": 96.71
+        },
+        {
+          "name": "Ireland",
+          "percentage": 1.14
+        },
+        {
+          "name": "Other",
+          "percentage": 2.15
+        }
+      ]
+    },
+    {
+      "url": "https://www.justetf.com/en/etf-profile.html?0-1.0-holdingsSection-countries-loadMoreCountries&isin=IE00B7K93397&_wicket=1",
+      "status": 200,
+      "content_type": "text/xml;charset=UTF-8",
+      "prefix": "<ajax-response><redirect><![CDATA[/en/access-denied.html]]></redirect></ajax-response>",
+      "main_page_country_rows": []
+    },
+    {
+      "url": "https://www.justetf.com/en/etf-profile.html?0-1.0-holdingsSection-sectors-loadMoreSectors&isin=IE00B7K93397&_wicket=1",
+      "status": 200,
+      "content_type": "text/xml;charset=UTF-8",
+      "prefix": "<?xml version=\"1.0\" encoding=\"UTF-8\"?><ajax-response><component id=\"loadMoreSectors6\" ><![CDATA[<a class=\"expand-link d-inline-block p-2\" href=\"#\" sidebar-toggle=\"theme\" data-testid=\"etf-holdings_sect",
+      "main_page_country_rows": []
+    }
+  ]
+}

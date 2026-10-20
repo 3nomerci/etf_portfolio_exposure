@@ -1,0 +1,17 @@
+{
+  "tested": 100,
+  "availability": {
+    "eur_valuation": 93,
+    "isin_returned_and_matched": 0,
+    "yahoo_sectors": 85,
+    "yahoo_holdings": 72,
+    "justetf_profile": 52,
+    "justetf_sectors": 49,
+    "justetf_geography": 27,
+    "justetf_holdings": 51,
+    "geography_with_main_page_fallback": 51,
+    "sectors_with_main_page_fallback": 50
+  },
+  "geography_recoverable_from_main_page": 24,
+  "justetf_http_403": 48
+}

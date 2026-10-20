@@ -24,6 +24,13 @@ To run the offline tests:
 uv run pytest
 ```
 
+The tests use saved responses and do not make network requests. They cover the
+justETF page fallback when an optional expansion request is denied or empty. The
+[100-ETF live audit](reports/provider-coverage-2026-10-20/README.md) includes the
+baseline results, affected ETFs and root cause; the
+[follow-up validation](reports/provider-coverage-2026-10-20/fallback-validation.md)
+records the fix and its checks.
+
 ## Use
 
 1. Add/remove ISINs in the table and specify **numbers of ETF units**, not EUR amounts.
@@ -48,13 +55,14 @@ uv run pytest
    the last submitted inputs. Quotes and any needed currency conversions are fetched
    together. If pricing fails, previous totals and portfolio charts are hidden;
    individual ETF charts from justETF remain available without market prices.
-6. Open **Compare two portfolios** at the bottom. Portfolio 1 is the currently loaded
-   portfolio. Edit Portfolio 2 (initially a copy), or upload another `isin,position`
-   CSV, then click **Compare portfolios**. Compare sectors, geography or reported top
-   holdings with side-by-side bars from one provider. Each portfolio's percentages
+6. Open **Compare two portfolios** at the bottom, available even before loading the
+   main portfolio. Edit the two tables side by side, or upload a separate `isin,position`
+   CSV for each. Both initially copy the table above and can be changed independently.
+   Click **Compare portfolios** to load both and compare sectors, geography or reported
+   top holdings with side-by-side bars from one provider. Each portfolio's percentages
    use its own total value; common ETFs use exactly the same prices. Changing charts
-   makes no new requests. After reloading Portfolio 1, click **Compare portfolios**
-   again. Neither comparison runs with an incomplete valuation.
+   makes no new requests. The comparison is independent of the main portfolio and
+   runs only when both portfolios have complete valuations.
 
 ## Organization
 
@@ -93,6 +101,11 @@ data/portfolio.example.csv      Illustrative input
   only from justETF.** Each chart shows its sources and retrieval times; the quality
   panel provides per-listing links and times. justETF's holdings date is shown when
   supplied. Funds and providers may report different dates; the app does not align them.
+- If justETF's expanded countries or sectors are empty, the app requests the normal
+  page once and keeps any usable rows there. Successful expanded lists and holdings
+  are preserved. A visible “Using justETF page summaries” notice identifies recovered
+  datasets: smaller allocations may be grouped into Other, and full detail is not
+  confirmed. The fallback cannot recover a blocked main page or undisclosed data.
 - Portfolio weights are based on `ETF units × quote price in EUR` divided by **total
   portfolio value**. The two providers share this same denominator. Missing provider
   allocations are **not** spread over other ETFs. If any position has no usable price
@@ -108,6 +121,8 @@ data/portfolio.example.csv      Illustrative input
   80% is unknown. The panel separates unreported portions from entirely unavailable
   provider datasets. “Other” remains the provider's category; it is not the app's
   calculated “Unreported” remainder. Small rounding differences may remain.
+  Missing datasets and affected ETFs are also named in a visible warning above the
+  analysis and comparison results. Affected charts are labelled “incomplete data”.
 - `GBp` and `GBX` represent pence rather than pounds and are converted accordingly.
 - **Matching sector names does not make their definitions equal.** For example,
   Communication Services can include businesses that another provider does not put

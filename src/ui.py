@@ -20,6 +20,38 @@ def retrieval_range(etfs, source):
     return text + " UTC"
 
 
+def allocation_warnings(etfs, label=""):
+    """Surface missing datasets without requiring the data-quality expander."""
+    missing = []
+    summaries = []
+    for source, datasets in (("yfinance", (("sectors", "sectors"), ("holdings", "top holdings"))),
+                             ("justetf", (("sectors", "sectors"), ("countries", "geography"),
+                                          ("holdings", "top holdings")))):
+        for kind, name in datasets:
+            affected = [f"{etf.name} ({etf.isin})" for etf in etfs
+                        if (data := getattr(etf, source)) is None or not getattr(data, kind)]
+            if affected:
+                missing.append(f"- {SOURCE_LABELS[source]} **{name}**: {', '.join(affected)}")
+            recovered = [f"{etf.name} ({etf.isin})" for etf in etfs
+                         if (data := getattr(etf, source)) is not None and kind in data.page_fallbacks]
+            if recovered:
+                summaries.append(f"- {SOURCE_LABELS[source]} **{name}**: {', '.join(recovered)}")
+    if missing:
+        st.warning(
+            f"**{label + ': ' if label else ''}Missing ETF allocation data**\n\n"
+            + "\n".join(missing)
+            + "\n\nCharts for these datasets are incomplete. Missing allocations are unknown, "
+              "not zero, and are not redistributed across the other ETFs."
+        )
+    if summaries:
+        st.warning(
+            f"**{label + ': ' if label else ''}Using justETF page summaries**\n\n"
+            + "\n".join(summaries)
+            + "\n\nThe expanded data was unavailable, so the chart uses the reported page rows. "
+              "These may group smaller allocations under Other; full detail is not confirmed."
+        )
+
+
 def etf_quality_panel(etfs, snapshot):
     """Also usable after a failed load, without displaying partial portfolio totals."""
     with st.expander("ETF valuations and data quality", expanded=False):

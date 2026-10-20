@@ -233,6 +233,30 @@ def _fund_details(overview: dict[str, Any]) -> dict[str, str]:
     return details
 
 
+def _justetf_overview(isin: str) -> tuple[dict, tuple[str, ...], list[str]]:
+    """Keep expanded lists; retry the page once if the library returns empty lists."""
+    import justetf_scraping
+
+    overview = justetf_scraping.get_etf_overview(isin, include_gettex=False, expand_allocations=True)
+    if not isinstance(overview, dict) or not overview:
+        raise ValueError("Empty justETF profile")
+    missing = [kind for kind in ("countries", "sectors") if not overview.get(kind)]
+    if not missing:
+        return overview, (), []
+    try:
+        page = justetf_scraping.get_etf_overview(isin, include_gettex=False, expand_allocations=False)
+    except Exception as exc:
+        return overview, (), [f"{isin}: justETF page fallback unavailable ({exc})"]
+    if not isinstance(page, dict) or not page:
+        return overview, (), [f"{isin}: justETF page fallback returned no profile"]
+    recovered = []
+    for kind in missing:
+        if page.get(kind):
+            overview[kind] = page[kind]
+            recovered.append(kind)
+    return overview, tuple(recovered), []
+
+
 def fetch_etf(isin: str, ticker_override: str = "") -> ETFData:
     """Fetch providers independently; missing prices prevent portfolio valuation only."""
     isin = isin.strip().upper()
@@ -257,20 +281,18 @@ def fetch_etf(isin: str, ticker_override: str = "") -> ETFData:
     details = {}
     holdings_date = ""
     try:
-        import justetf_scraping
         # No Gettex socket, historical price downloads, or full constituents.
-        overview = justetf_scraping.get_etf_overview(
-            isin, include_gettex=False, expand_allocations=True
-        )
-        if not isinstance(overview, dict) or not overview:
-            raise ValueError("Empty justETF profile")
+        overview, page_fallbacks, fallback_warnings = _justetf_overview(isin)
+        warnings.extend(fallback_warnings)
         details = _fund_details(overview)
         holdings_date = str(overview.get("holdings_date") or "")
         justetf_name = str(overview.get("name") or "").strip()
         sectors = dataset("justETF sectors", lambda: overview.get("sectors"), _parse_justetf_allocation, {})
         countries = dataset("justETF countries", lambda: overview.get("countries"), _parse_justetf_allocation, {})
         holdings = dataset("justETF top holdings", lambda: overview.get("top_holdings"), _parse_justetf_holdings, ())
-        justetf = Breakdown(sectors=sectors, countries=countries, holdings=holdings)
+        valid_fallbacks = tuple(kind for kind, values in (("countries", countries), ("sectors", sectors))
+                                if values and kind in page_fallbacks)
+        justetf = Breakdown(sectors=sectors, countries=countries, holdings=holdings, page_fallbacks=valid_fallbacks)
         retrieved_at["justetf"] = datetime.now(timezone.utc)
     except Exception as exc:
         warnings.append(f"{isin}: justETF profile unavailable ({exc})")

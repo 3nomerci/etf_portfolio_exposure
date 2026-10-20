@@ -18,6 +18,7 @@ class Breakdown:
     sectors: dict[str, float] = field(default_factory=dict)
     countries: dict[str, float] = field(default_factory=dict)
     holdings: tuple[Holding, ...] = ()  # Top 10 *reported* holdings.
+    page_fallbacks: tuple[str, ...] = ()  # Datasets recovered from justETF's page summary.
 
 
 @dataclass(frozen=True)

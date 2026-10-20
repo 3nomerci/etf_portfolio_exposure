@@ -1,0 +1,585 @@
+{
+  "checked_at_utc": "2026-10-20T10:36:55.542559+00:00",
+  "fetch_code_sha256": "cc3a31d2ac53e171bbe799fc0d836e9acf5efa6c7a4d79f163fb45bcf36d43f0",
+  "etfs": [
+    {
+      "isin": "IE00B7K93397",
+      "ticker": "UC13.L",
+      "name": "UBS Core S&P 500 UCITS ETF USD dis",
+      "quote_price": 9362.5,
+      "quote_currency": "GBp",
+      "unit_price_eur": 111.3482125,
+      "yfinance": {
+        "sectors": {
+          "realestate": 0.0168,
+          "consumer_cyclical": 0.0876,
+          "basic_materials": 0.0156,
+          "consumer_defensive": 0.0433,
+          "technology": 0.4045,
+          "communication_services": 0.0995,
+          "financial_services": 0.1121,
+          "utilities": 0.0188,
+          "industrials": 0.0753,
+          "energy": 0.034,
+          "healthcare": 0.0926
+        },
+        "countries": {},
+        "holdings": [
+          {
+            "name": "NVIDIA Corp",
+            "weight": 0.0833515,
+            "isin": null,
+            "symbol": "NVDA"
+          },
+          {
+            "name": "Apple Inc",
+            "weight": 0.0733018,
+            "isin": null,
+            "symbol": "AAPL"
+          },
+          {
+            "name": "Microsoft Corp",
+            "weight": 0.057438504,
+            "isin": null,
+            "symbol": "MSFT"
+          },
+          {
+            "name": "Amazon.com Inc",
+            "weight": 0.0368594,
+            "isin": null,
+            "symbol": "AMZN"
+          },
+          {
+            "name": "Alphabet Inc Class A",
+            "weight": 0.030439999,
+            "isin": null,
+            "symbol": "GOOGL"
+          },
+          {
+            "name": "Broadcom Inc",
+            "weight": 0.025211599,
+            "isin": null,
+            "symbol": "AVGO"
+          },
+          {
+            "name": "Alphabet Inc Class C",
+            "weight": 0.024419,
+            "isin": null,
+            "symbol": "GOOG"
+          },
+          {
+            "name": "Meta Platforms Inc Class A",
+            "weight": 0.024099,
+            "isin": null,
+            "symbol": "META"
+          },
+          {
+            "name": "Micron Technology Inc",
+            "weight": 0.018111201,
+            "isin": null,
+            "symbol": "MU"
+          },
+          {
+            "name": "Tesla Inc",
+            "weight": 0.015078899,
+            "isin": null,
+            "symbol": "TSLA"
+          }
+        ],
+        "page_fallbacks": []
+      },
+      "justetf": {
+        "sectors": {
+          "Technology": 0.447,
+          "Finance": 0.1356,
+          "Healthcare": 0.09050000000000001,
+          "Consumer Non-Cyclicals": 0.08839999999999999,
+          "Industrials": 0.0741,
+          "Energy": 0.034300000000000004,
+          "Consumer Cyclicals": 0.0325,
+          "Non-Energy Materials": 0.022000000000000002,
+          "Consumer Services": 0.0218,
+          "Utilities": 0.0197,
+          "Business Services": 0.0155,
+          "Telecommunication": 0.0089,
+          "Other": 0.0097
+        },
+        "countries": {
+          "United States": 0.9671,
+          "Ireland": 0.011399999999999999,
+          "Other": 0.0215
+        },
+        "holdings": [
+          {
+            "name": "NVIDIA Corp.",
+            "weight": 0.08039999999999999,
+            "isin": "US67066G1040",
+            "symbol": null
+          },
+          {
+            "name": "Apple",
+            "weight": 0.07,
+            "isin": "US0378331005",
+            "symbol": null
+          },
+          {
+            "name": "Microsoft Corp",
+            "weight": 0.0567,
+            "isin": "US5949181045",
+            "symbol": null
+          },
+          {
+            "name": "Amazon.com, Inc.",
+            "weight": 0.0382,
+            "isin": "US0231351067",
+            "symbol": null
+          },
+          {
+            "name": "Alphabet, Inc. A",
+            "weight": 0.029900000000000003,
+            "isin": "US02079K3059",
+            "symbol": null
+          },
+          {
+            "name": "Broadcom Inc.",
+            "weight": 0.0264,
+            "isin": "US11135F1012",
+            "symbol": null
+          },
+          {
+            "name": "Alphabet, Inc. C",
+            "weight": 0.0239,
+            "isin": "US02079K1079",
+            "symbol": null
+          },
+          {
+            "name": "Meta Platforms",
+            "weight": 0.0189,
+            "isin": "US30303M1027",
+            "symbol": null
+          },
+          {
+            "name": "Micron Technology",
+            "weight": 0.0163,
+            "isin": "US5951121038",
+            "symbol": null
+          },
+          {
+            "name": "Tesla",
+            "weight": 0.015600000000000001,
+            "isin": "US88160R1014",
+            "symbol": null
+          }
+        ],
+        "page_fallbacks": [
+          "countries"
+        ]
+      },
+      "warnings": [],
+      "exchange": "LSE",
+      "listing_isin": null,
+      "listing_verified": false,
+      "verification_source": "",
+      "retrieved_at": {
+        "justetf": "2026-10-20T10:36:56.640628+00:00",
+        "quote": "2026-10-20T10:36:58.800332+00:00",
+        "fx": "2026-10-20T10:36:59.337329+00:00",
+        "yfinance": "2026-10-20T10:36:59.536131+00:00"
+      },
+      "quote_as_of": "2026-10-16T14:08:57+00:00",
+      "quote_basis": "regularMarketPrice",
+      "fund_details": {},
+      "spread_fraction": 0.0006445375443119562,
+      "holdings_date": "31/08/2026",
+      "valuation_error": ""
+    },
+    {
+      "isin": "IE00B4L5Y983",
+      "ticker": "IWDA.L",
+      "name": "iShares Core MSCI World UCITS ETF USD (Acc)",
+      "quote_price": 145.9,
+      "quote_currency": "USD",
+      "unit_price_eur": 130.09903,
+      "yfinance": {
+        "sectors": {
+          "realestate": 0.0153,
+          "consumer_cyclical": 0.08270001,
+          "basic_materials": 0.0306,
+          "consumer_defensive": 0.0473,
+          "technology": 0.32479998,
+          "communication_services": 0.084,
+          "financial_services": 0.15560001,
+          "utilities": 0.0223,
+          "industrials": 0.10479999,
+          "energy": 0.0405,
+          "healthcare": 0.092
+        },
+        "countries": {},
+        "holdings": [
+          {
+            "name": "NVIDIA Corp",
+            "weight": 0.0578801,
+            "isin": null,
+            "symbol": "NVDA"
+          },
+          {
+            "name": "Apple Inc",
+            "weight": 0.0539194,
+            "isin": null,
+            "symbol": "AAPL"
+          },
+          {
+            "name": "Microsoft Corp",
+            "weight": 0.0399011,
+            "isin": null,
+            "symbol": "MSFT"
+          },
+          {
+            "name": "Amazon.com Inc",
+            "weight": 0.0265908,
+            "isin": null,
+            "symbol": "AMZN"
+          },
+          {
+            "name": "Alphabet Inc Class A",
+            "weight": 0.0222558,
+            "isin": null,
+            "symbol": "GOOGL"
+          },
+          {
+            "name": "Meta Platforms Inc Class A",
+            "weight": 0.017566599,
+            "isin": null,
+            "symbol": "META"
+          },
+          {
+            "name": "Alphabet Inc Class C",
+            "weight": 0.0175593,
+            "isin": null,
+            "symbol": "GOOG"
+          },
+          {
+            "name": "Broadcom Inc",
+            "weight": 0.0174978,
+            "isin": null,
+            "symbol": "AVGO"
+          },
+          {
+            "name": "Micron Technology Inc",
+            "weight": 0.0132609,
+            "isin": null,
+            "symbol": "MU"
+          },
+          {
+            "name": "Tesla Inc",
+            "weight": 0.0111902,
+            "isin": null,
+            "symbol": "TSLA"
+          }
+        ],
+        "page_fallbacks": []
+      },
+      "justetf": {
+        "sectors": {
+          "Technology": 0.35710000000000003,
+          "Finance": 0.1801,
+          "Industrials": 0.09570000000000001,
+          "Healthcare": 0.08990000000000001,
+          "Consumer Non-Cyclicals": 0.08470000000000001,
+          "Energy": 0.0418,
+          "Non-Energy Materials": 0.0392,
+          "Consumer Cyclicals": 0.0387,
+          "Utilities": 0.0231,
+          "Consumer Services": 0.0183,
+          "Telecommunication": 0.0146,
+          "Business Services": 0.014199999999999999,
+          "Non-Corporate": 0.0008,
+          "Other": 0.0018
+        },
+        "countries": {
+          "United States": 0.7031999999999999,
+          "Japan": 0.0579,
+          "United Kingdom": 0.0368,
+          "Canada": 0.0339,
+          "Switzerland": 0.0258,
+          "Germany": 0.021400000000000002,
+          "France": 0.0213,
+          "Netherlands": 0.016399999999999998,
+          "Australia": 0.0159,
+          "Ireland": 0.0105,
+          "Other": 0.056900000000000006
+        },
+        "holdings": [
+          {
+            "name": "NVIDIA Corp.",
+            "weight": 0.0553,
+            "isin": "US67066G1040",
+            "symbol": null
+          },
+          {
+            "name": "Apple",
+            "weight": 0.0507,
+            "isin": "US0378331005",
+            "symbol": null
+          },
+          {
+            "name": "Microsoft Corp",
+            "weight": 0.039,
+            "isin": "US5949181045",
+            "symbol": null
+          },
+          {
+            "name": "Amazon.com, Inc.",
+            "weight": 0.0274,
+            "isin": "US0231351067",
+            "symbol": null
+          },
+          {
+            "name": "Alphabet, Inc. A",
+            "weight": 0.0217,
+            "isin": "US02079K3059",
+            "symbol": null
+          },
+          {
+            "name": "Broadcom Inc.",
+            "weight": 0.0182,
+            "isin": "US11135F1012",
+            "symbol": null
+          },
+          {
+            "name": "Alphabet, Inc. C",
+            "weight": 0.0171,
+            "isin": "US02079K1079",
+            "symbol": null
+          },
+          {
+            "name": "Meta Platforms",
+            "weight": 0.0137,
+            "isin": "US30303M1027",
+            "symbol": null
+          },
+          {
+            "name": "Micron Technology",
+            "weight": 0.0118,
+            "isin": "US5951121038",
+            "symbol": null
+          },
+          {
+            "name": "Tesla",
+            "weight": 0.0115,
+            "isin": "US88160R1014",
+            "symbol": null
+          }
+        ],
+        "page_fallbacks": []
+      },
+      "warnings": [],
+      "exchange": "LSE",
+      "listing_isin": null,
+      "listing_verified": false,
+      "verification_source": "",
+      "retrieved_at": {
+        "justetf": "2026-10-20T10:37:05.155411+00:00",
+        "quote": "2026-10-20T10:37:05.812794+00:00",
+        "fx": "2026-10-20T10:37:06.044831+00:00",
+        "yfinance": "2026-10-20T10:37:06.127720+00:00"
+      },
+      "quote_as_of": "2026-10-20T10:21:37+00:00",
+      "quote_basis": "regularMarketPrice",
+      "fund_details": {},
+      "spread_fraction": 0.00013708019191233884,
+      "holdings_date": "31/08/2026",
+      "valuation_error": ""
+    },
+    {
+      "isin": "IE00B5BMR087",
+      "ticker": "CSSPX.MI",
+      "name": "iShares Core S&P 500 UCITS ETF USD (Acc)",
+      "quote_price": 740.27,
+      "quote_currency": "EUR",
+      "unit_price_eur": 740.27,
+      "yfinance": {
+        "sectors": {
+          "realestate": 0.017,
+          "consumer_cyclical": 0.0874,
+          "basic_materials": 0.0156,
+          "consumer_defensive": 0.0433,
+          "technology": 0.4045,
+          "communication_services": 0.0995,
+          "financial_services": 0.111999996,
+          "utilities": 0.0188,
+          "industrials": 0.0754,
+          "energy": 0.034,
+          "healthcare": 0.0926
+        },
+        "countries": {},
+        "holdings": [
+          {
+            "name": "NVIDIA Corp",
+            "weight": 0.0836561,
+            "isin": null,
+            "symbol": "NVDA"
+          },
+          {
+            "name": "Apple Inc",
+            "weight": 0.0735711,
+            "isin": null,
+            "symbol": "AAPL"
+          },
+          {
+            "name": "Microsoft Corp",
+            "weight": 0.057654098,
+            "isin": null,
+            "symbol": "MSFT"
+          },
+          {
+            "name": "Amazon.com Inc",
+            "weight": 0.0370155,
+            "isin": null,
+            "symbol": "AMZN"
+          },
+          {
+            "name": "Alphabet Inc Class A",
+            "weight": 0.0305632,
+            "isin": null,
+            "symbol": "GOOGL"
+          },
+          {
+            "name": "Broadcom Inc",
+            "weight": 0.0252916,
+            "isin": null,
+            "symbol": "AVGO"
+          },
+          {
+            "name": "Alphabet Inc Class C",
+            "weight": 0.0245166,
+            "isin": null,
+            "symbol": "GOOG"
+          },
+          {
+            "name": "Meta Platforms Inc Class A",
+            "weight": 0.024201801,
+            "isin": null,
+            "symbol": "META"
+          },
+          {
+            "name": "Micron Technology Inc",
+            "weight": 0.0182053,
+            "isin": null,
+            "symbol": "MU"
+          },
+          {
+            "name": "Tesla Inc",
+            "weight": 0.0151333995,
+            "isin": null,
+            "symbol": "TSLA"
+          }
+        ],
+        "page_fallbacks": []
+      },
+      "justetf": {
+        "sectors": {
+          "Technology": 0.4523,
+          "Finance": 0.1362,
+          "Healthcare": 0.0909,
+          "Consumer Non-Cyclicals": 0.0888,
+          "Industrials": 0.0746,
+          "Energy": 0.0344,
+          "Consumer Cyclicals": 0.0325,
+          "Non-Energy Materials": 0.0222,
+          "Consumer Services": 0.0219,
+          "Utilities": 0.019799999999999998,
+          "Business Services": 0.015600000000000001,
+          "Telecommunication": 0.009000000000000001,
+          "Other": 0.0018
+        },
+        "countries": {
+          "United States": 0.9748,
+          "Ireland": 0.0115,
+          "Other": 0.0137
+        },
+        "holdings": [
+          {
+            "name": "NVIDIA Corp.",
+            "weight": 0.08070000000000001,
+            "isin": "US67066G1040",
+            "symbol": null
+          },
+          {
+            "name": "Apple",
+            "weight": 0.0703,
+            "isin": "US0378331005",
+            "symbol": null
+          },
+          {
+            "name": "Microsoft Corp",
+            "weight": 0.056900000000000006,
+            "isin": "US5949181045",
+            "symbol": null
+          },
+          {
+            "name": "Amazon.com, Inc.",
+            "weight": 0.0384,
+            "isin": "US0231351067",
+            "symbol": null
+          },
+          {
+            "name": "Alphabet, Inc. A",
+            "weight": 0.03,
+            "isin": "US02079K3059",
+            "symbol": null
+          },
+          {
+            "name": "Broadcom Inc.",
+            "weight": 0.0265,
+            "isin": "US11135F1012",
+            "symbol": null
+          },
+          {
+            "name": "Alphabet, Inc. C",
+            "weight": 0.0239,
+            "isin": "US02079K1079",
+            "symbol": null
+          },
+          {
+            "name": "Meta Platforms",
+            "weight": 0.019,
+            "isin": "US30303M1027",
+            "symbol": null
+          },
+          {
+            "name": "Micron Technology",
+            "weight": 0.0163,
+            "isin": "US5951121038",
+            "symbol": null
+          },
+          {
+            "name": "Tesla",
+            "weight": 0.015600000000000001,
+            "isin": "US88160R1014",
+            "symbol": null
+          }
+        ],
+        "page_fallbacks": [
+          "countries"
+        ]
+      },
+      "warnings": [],
+      "exchange": "Milan",
+      "listing_isin": null,
+      "listing_verified": false,
+      "verification_source": "",
+      "retrieved_at": {
+        "justetf": "2026-10-20T10:37:12.106584+00:00",
+        "quote": "2026-10-20T10:37:12.565487+00:00",
+        "yfinance": "2026-10-20T10:37:12.679773+00:00"
+      },
+      "quote_as_of": "2026-10-20T10:22:07+00:00",
+      "quote_basis": "regularMarketPrice",
+      "fund_details": {},
+      "spread_fraction": 0.013868251609707737,
+      "holdings_date": "31/08/2026",
+      "valuation_error": ""
+    }
+  ]
+}

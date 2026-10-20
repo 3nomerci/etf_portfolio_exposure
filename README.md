@@ -1,4 +1,5 @@
 # ETF Portfolio Analytics — Streamlit MVP
+[Try the tool](https://etf-exposure.streamlit.app/)
 
 A lightweight demo that loads each ETF's **current price (Yahoo Finance)** and
 **sector/country allocations and reported top 10 holdings (Yahoo Finance and justETF)**,
